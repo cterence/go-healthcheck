@@ -13,8 +13,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /src/app
 
 
 FROM gcr.io/distroless/base-debian12 AS deploy-stage
-WORKDIR /
-COPY --from=build-stage /src/app /app
+WORKDIR /app
+COPY --from=build-stage /src/app /app/app
 EXPOSE 3000
 USER nonroot:nonroot
-ENTRYPOINT ["/app"]
+ENTRYPOINT ["/app/app"]
