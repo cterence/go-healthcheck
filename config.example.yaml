@@ -1,0 +1,5 @@
+name: mychecks
+version: 1.0
+timeout: 5
+urls:
+  - https://google.com
