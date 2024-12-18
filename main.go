@@ -57,6 +57,13 @@ func main() {
 		}
 	}
 
+	http.Handle("/health", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Header.Add(w.Header(), "Content-Type", "application/json")
+		_, err := w.Write([]byte(`{"status": {"server": "OK"}}`))
+		if err != nil {
+			log.Fatalf("failed to write response for /health endpoint: %v", err)
+		}
+	}))
 	http.Handle("/status", h.Handler())
 	err = http.ListenAndServe(":3000", nil)
 	if err != nil {
