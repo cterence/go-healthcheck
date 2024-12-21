@@ -70,7 +70,11 @@ func main() {
 		t := time.Now()
 		h.HandlerFunc(w, r)
 		took := time.Since(t)
-		slog.Info(fmt.Sprintf("%s - %s - %s", r.RemoteAddr, r.UserAgent(), took.Abs().Round(time.Millisecond).String()))
+		addr := r.RemoteAddr
+		if ip, exists := r.Header["X-Real-Ip"]; exists {
+			addr = ip[0]
+		}
+		slog.Info(fmt.Sprintf("%s - %s - %s", addr, r.UserAgent(), took.Abs().Round(time.Millisecond).String()))
 	})
 	err = http.ListenAndServe(":3000", nil)
 	if err != nil {
