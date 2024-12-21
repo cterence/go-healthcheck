@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
@@ -64,7 +66,12 @@ func main() {
 			log.Fatalf("failed to write response for /health endpoint: %v", err)
 		}
 	}))
-	http.Handle("/status", h.Handler())
+	http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
+		t := time.Now()
+		h.HandlerFunc(w, r)
+		took := time.Since(t)
+		slog.Info(fmt.Sprintf("%s - %s - %s", r.RemoteAddr, r.UserAgent(), took.Abs().Round(time.Millisecond).String()))
+	})
 	err = http.ListenAndServe(":3000", nil)
 	if err != nil {
 		log.Fatalf("failed to listen on port 3000: %v", err)
