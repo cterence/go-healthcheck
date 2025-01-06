@@ -66,7 +66,7 @@ func main() {
 			log.Fatalf("failed to write response for /health endpoint: %v", err)
 		}
 	}))
-	http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		t := time.Now()
 		h.HandlerFunc(w, r)
 		took := time.Since(t)
