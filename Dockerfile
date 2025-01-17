@@ -1,11 +1,11 @@
-FROM golang:1.23.4 AS fetch-stage
+FROM golang:1.23.5 AS fetch-stage
 
 COPY go.mod go.sum /src/
 WORKDIR /src
 RUN go mod download
 
 
-FROM golang:1.23.4 AS build-stage
+FROM golang:1.23.5 AS build-stage
 COPY --from=fetch-stage /src /src
 COPY main.go /src/
 WORKDIR /src
