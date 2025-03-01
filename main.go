@@ -75,10 +75,22 @@ func main() {
 		if ip, exists := r.Header["X-Real-Ip"]; exists {
 			addr = ip[0]
 		}
-		slog.Info(fmt.Sprintf("%s - %s - %s", addr, r.UserAgent(), took.Abs().Round(time.Millisecond).String()))
+		if addr == "" {
+			addr = "unknown-ip"
+		}
+		userAgent := r.UserAgent()
+		if userAgent == "" {
+			userAgent = "unknown-useragent"
+		}
+		slog.Info(fmt.Sprintf("%s - %s - %s", addr, userAgent, took.Abs().Round(time.Millisecond).String()))
 	})
-	err = http.ListenAndServe(":3000", nil)
+	port := os.Getenv("GOHC_PORT")
+	if port == "" {
+		port = "3000"
+	}
+	slog.Info(fmt.Sprintf("Listening on port %s", port))
+	err = http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 	if err != nil {
-		log.Fatalf("failed to listen on port 3000: %v", err)
+		log.Fatalf("failed to listen on port %s: %v", port, err)
 	}
 }
