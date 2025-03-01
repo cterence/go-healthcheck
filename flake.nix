@@ -1,8 +1,8 @@
 {
-  description = "A Nix-flake-based Go 1.23 development environment";
+  description = "A Nix-flake-based Go development environment";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-unstable";
+    nixpkgs.url = "nixpkgs/nixpkgs-unstable";
 
     pre-commit-hooks = {
       url = "github:cachix/git-hooks.nix";
@@ -17,7 +17,7 @@
       pre-commit-hooks,
     }:
     let
-      goVersion = 23; # Change this to update the whole stack
+      goVersion = 24; # Change this to update the whole stack
 
       supportedSystems = [
         "x86_64-linux"
