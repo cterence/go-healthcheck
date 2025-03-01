@@ -29,3 +29,5 @@ config.yaml
 .direnv/
 .pre-commit-config.yaml
 go-healthcheck
+# Added by goreleaser init:
+dist/
