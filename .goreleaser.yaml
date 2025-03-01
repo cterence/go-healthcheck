@@ -12,7 +12,7 @@ builds:
       - windows
       - darwin
 archives:
-  - format: tar.gz
+  - formats: ["tar.gz"]
     name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_
@@ -22,7 +22,7 @@ archives:
       {{- if .Arm }}v{{ .Arm }}{{ end }}
     format_overrides:
       - goos: windows
-        format: zip
+        formats: ["zip"]
 snapshot:
   version_template: "{{ .Tag }}-next"
 changelog:
