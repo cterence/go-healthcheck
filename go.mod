@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/hellofresh/health-go/v5 v5.5.3
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
