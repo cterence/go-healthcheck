@@ -9,6 +9,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/httplog/v2"
 	"github.com/hellofresh/health-go/v5"
 	healthHttp "github.com/hellofresh/health-go/v5/checks/http"
 	"gopkg.in/yaml.v3"
@@ -30,6 +33,7 @@ func main() {
 	config := Config{}
 
 	err = yaml.Unmarshal(configYaml, &config)
+
 	if err != nil {
 		log.Fatalf("failed to unmarshal YAML config: %v", err)
 	}
@@ -59,37 +63,31 @@ func main() {
 		}
 	}
 
-	http.Handle("/health", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Header.Add(w.Header(), "Content-Type", "application/json")
-		_, err := w.Write([]byte(`{"status": {"server": "OK"}}`))
-		if err != nil {
-			log.Fatalf("failed to write response for /health endpoint: %v", err)
-		}
-	}))
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		t := time.Now()
-		h.HandlerFunc(w, r)
-		took := time.Since(t)
-		addr := r.RemoteAddr
-		if ip, exists := r.Header["X-Real-Ip"]; exists {
-			addr = ip[0]
-		}
-		if addr == "" {
-			addr = "unknown-ip"
-		}
-		userAgent := r.UserAgent()
-		if userAgent == "" {
-			userAgent = "unknown-useragent"
-		}
-		slog.Info(fmt.Sprintf("%s - %s - %s", addr, userAgent, took.Abs().Round(time.Millisecond).String()))
+	logger := httplog.NewLogger("go-healthcheck", httplog.Options{
+		LogLevel:        slog.LevelInfo,
+		Concise:         true,
+		RequestHeaders:  true,
+		TimeFieldFormat: time.RFC3339,
 	})
+
+	r := chi.NewRouter()
+
+	r.Use(httplog.RequestLogger(logger))
+	r.Use(middleware.Heartbeat("/health"))
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Timeout(time.Second * 10))
+
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		h.HandlerFunc(w, r)
+	})
+
 	port := os.Getenv("GOHC_PORT")
 	if port == "" {
 		port = "3000"
 	}
-	slog.Info(fmt.Sprintf("Listening on port %s", port))
-	err = http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
+	fmt.Printf("Listening on port %s\n", port)
+	err = http.ListenAndServe(fmt.Sprintf(":%s", port), r)
 	if err != nil {
 		log.Fatalf("failed to listen on port %s: %v", port, err)
 	}
