@@ -9,8 +9,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/httplog/v2"
 	"github.com/hellofresh/health-go/v5"
 	healthHttp "github.com/hellofresh/health-go/v5/checks/http"
