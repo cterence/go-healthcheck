@@ -14,14 +14,16 @@ import (
 	"github.com/go-chi/httplog/v2"
 	"github.com/hellofresh/health-go/v5"
 	healthHttp "github.com/hellofresh/health-go/v5/checks/http"
+	healthPostgres "github.com/hellofresh/health-go/v5/checks/postgres"
 	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
-	Name    string   `yaml:"name"`
-	Version string   `yaml:"version"`
-	Timeout int      `yaml:"timeout"`
-	URLs    []string `yaml:"urls"`
+	Name           string   `yaml:"name"`
+	Version        string   `yaml:"version"`
+	Timeout        int      `yaml:"timeout"`
+	URLs           []string `yaml:"urls"`
+	PostgreSQLURIs []string `yaml:"postgresqlURIs"`
 }
 
 func main() {
@@ -44,7 +46,7 @@ func main() {
 	}))
 
 	for _, u := range config.URLs {
-		url, err := url.Parse(u)
+		url, err := url.ParseRequestURI(u)
 		if err != nil {
 			log.Fatalf("failed to parse url %s: %v", u, err)
 		}
@@ -56,6 +58,25 @@ func main() {
 			Check: healthHttp.New(healthHttp.Config{
 				URL:            url.String(),
 				RequestTimeout: time.Second * time.Duration(config.Timeout),
+			}),
+		})
+		if err != nil {
+			log.Fatalf("failed to register health check %s: %v", url, err)
+		}
+	}
+
+	for _, u := range config.PostgreSQLURIs {
+		url, err := url.ParseRequestURI(u)
+		if err != nil {
+			log.Fatalf("failed to parse url %s: %v", u, err)
+		}
+
+		err = h.Register(health.Config{
+			Name:      url.Host,
+			Timeout:   time.Second * time.Duration(config.Timeout),
+			SkipOnErr: false,
+			Check: healthPostgres.New(healthPostgres.Config{
+				DSN: u,
 			}),
 		})
 		if err != nil {

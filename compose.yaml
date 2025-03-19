@@ -1,0 +1,13 @@
+services:
+  go-healthcheck:
+    build: .
+    ports:
+      - 3000:3000
+    volumes:
+      - ./config.yaml:/app/config.yaml
+  db:
+    image: postgres:17
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres

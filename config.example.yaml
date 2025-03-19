@@ -3,3 +3,5 @@ version: 1.0
 timeout: 5
 urls:
   - https://google.com
+postgresqlURIs:
+  - postgresql://postgres:postgres@db:5432/postgres?sslmode=disable

@@ -11,5 +11,6 @@
     ":automergeDigest",
     ":rebaseStalePrs",
     ":semanticCommits",
+    ":skipStatusChecks",
   ],
 }

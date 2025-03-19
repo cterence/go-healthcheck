@@ -10,7 +10,8 @@ require (
 )
 
 require (
+	github.com/lib/pq v1.10.9 // indirect
 	github.com/stretchr/testify v1.10.0 // indirect
-	go.opentelemetry.io/otel v1.24.0 // indirect
-	go.opentelemetry.io/otel/trace v1.24.0 // indirect
+	go.opentelemetry.io/otel v1.35.0 // indirect
+	go.opentelemetry.io/otel/trace v1.35.0 // indirect
 )
