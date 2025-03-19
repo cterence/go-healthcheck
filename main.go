@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"log/slog"
@@ -93,14 +94,29 @@ func main() {
 
 	r := chi.NewRouter()
 
-	r.Use(httplog.RequestLogger(logger))
 	r.Use(middleware.Heartbeat("/health"))
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Timeout(time.Second * 10))
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		h.HandlerFunc(w, r)
+		c := h.Measure(r.Context())
+
+		w.Header().Set("Content-Type", "application/json")
+		data, err := json.Marshal(c)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		code := http.StatusOK
+		if c.Status == "Unavailable" {
+			code = http.StatusServiceUnavailable
+		}
+		logger.Logger.Info(string(data))
+		w.WriteHeader(code)
+		w.Write(data)
 	})
 
 	port := os.Getenv("GOHC_PORT")
