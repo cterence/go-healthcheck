@@ -6,6 +6,7 @@ Simple health check application based on the [hellofresh/health-go](https://gith
 
 - HTTP(S)
 - PostgreSQL
+- Redis
 
 ## Installation
 

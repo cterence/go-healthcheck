@@ -5,3 +5,5 @@ urls:
   - https://google.com
 postgresqlURIs:
   - postgresql://postgres:postgres@db:5432/postgres?sslmode=disable
+redisURIs:
+  - redis://:redis@redis:6379

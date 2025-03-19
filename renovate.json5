@@ -13,4 +13,5 @@
     ":semanticCommits",
     ":skipStatusChecks",
   ],
+  ignoreDeps: ["redis"],
 }

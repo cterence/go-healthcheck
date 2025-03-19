@@ -16,6 +16,7 @@ import (
 	"github.com/hellofresh/health-go/v5"
 	healthHttp "github.com/hellofresh/health-go/v5/checks/http"
 	healthPostgres "github.com/hellofresh/health-go/v5/checks/postgres"
+	healthRedis "github.com/hellofresh/health-go/v5/checks/redis"
 	"gopkg.in/yaml.v3"
 )
 
@@ -25,6 +26,7 @@ type Config struct {
 	Timeout        int      `yaml:"timeout"`
 	URLs           []string `yaml:"urls"`
 	PostgreSQLURIs []string `yaml:"postgresqlURIs"`
+	RedisURIs      []string `yaml:"redisURIs"`
 }
 
 func main() {
@@ -62,7 +64,7 @@ func main() {
 			}),
 		})
 		if err != nil {
-			log.Fatalf("failed to register health check %s: %v", url, err)
+			log.Fatalf("failed to register http health check %s: %v", url, err)
 		}
 	}
 
@@ -81,7 +83,26 @@ func main() {
 			}),
 		})
 		if err != nil {
-			log.Fatalf("failed to register health check %s: %v", url, err)
+			log.Fatalf("failed to register postgresql health check %s: %v", url, err)
+		}
+	}
+
+	for _, u := range config.RedisURIs {
+		url, err := url.ParseRequestURI(u)
+		if err != nil {
+			log.Fatalf("failed to parse url %s: %v", u, err)
+		}
+
+		err = h.Register(health.Config{
+			Name:      url.Host,
+			Timeout:   time.Second * time.Duration(config.Timeout),
+			SkipOnErr: false,
+			Check: healthRedis.New(healthRedis.Config{
+				DSN: u,
+			}),
+		})
+		if err != nil {
+			log.Fatalf("failed to register redis health check %s: %v", url, err)
 		}
 	}
 
