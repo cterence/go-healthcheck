@@ -121,10 +121,21 @@ func main() {
 	r.Use(middleware.Timeout(time.Second * 10))
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		type CheckWithFailures struct {
+			health.Check
+			Failures map[string]string `json:"failures"` // Overrides Check.Failures which is normally omitempty
+		}
+		cwf := CheckWithFailures{}
+
 		c := h.Measure(r.Context())
 
+		cwf.Status = c.Status
+		cwf.Timestamp = c.Timestamp
+		cwf.Failures = c.Failures
+		cwf.Component = c.Component
+
 		w.Header().Set("Content-Type", "application/json")
-		data, err := json.Marshal(c)
+		data, err := json.Marshal(cwf)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -137,7 +148,10 @@ func main() {
 		}
 		logger.Logger.Info(string(data))
 		w.WriteHeader(code)
-		w.Write(data)
+		_, err = w.Write(data)
+		if err != nil {
+			log.Fatalf("failed to write response: %v", err)
+		}
 	})
 
 	port := os.Getenv("GOHC_PORT")
