@@ -1,9 +1,11 @@
 name: mychecks
 version: 1.0
 timeout: 5
-urls:
-  - https://google.com
-postgresqlURIs:
-  - postgresql://postgres:postgres@db:5432/postgres?sslmode=disable
-redisURIs:
-  - redis://:redis@redis:6379
+port: 3000
+targets:
+  http:
+    - https://google.com
+  postgresql:
+    - postgresql://postgres:postgres@db:5432/postgres?sslmode=disable
+  redis:
+    - redis://:redis@redis:6379

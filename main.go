@@ -1,46 +1,21 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
-	"log/slog"
 	"net/http"
-	"net/url"
-	"os"
-	"time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/httplog/v2"
+	"github.com/cterence/go-healthcheck/pkg/config"
+	"github.com/cterence/go-healthcheck/pkg/router"
+	"github.com/cterence/go-healthcheck/pkg/target"
 	"github.com/hellofresh/health-go/v5"
-	healthHttp "github.com/hellofresh/health-go/v5/checks/http"
-	healthPostgres "github.com/hellofresh/health-go/v5/checks/postgres"
-	healthRedis "github.com/hellofresh/health-go/v5/checks/redis"
-	"gopkg.in/yaml.v3"
 )
 
-type Config struct {
-	Name           string   `yaml:"name"`
-	Version        string   `yaml:"version"`
-	Timeout        int      `yaml:"timeout"`
-	URLs           []string `yaml:"urls"`
-	PostgreSQLURIs []string `yaml:"postgresqlURIs"`
-	RedisURIs      []string `yaml:"redisURIs"`
-}
-
 func main() {
-	configYaml, err := os.ReadFile("config.yaml")
+	config := &config.Config{}
+	err := config.Load()
 	if err != nil {
-		log.Fatalf("failed to open config file: %v", err)
-	}
-
-	config := Config{}
-
-	err = yaml.Unmarshal(configYaml, &config)
-
-	if err != nil {
-		log.Fatalf("failed to unmarshal YAML config: %v", err)
+		log.Fatalf("failed to load config: %v", err)
 	}
 
 	h, _ := health.New(health.WithComponent(health.Component{
@@ -48,119 +23,33 @@ func main() {
 		Version: config.Version,
 	}))
 
-	for _, u := range config.URLs {
-		url, err := url.ParseRequestURI(u)
-		if err != nil {
-			log.Fatalf("failed to parse url %s: %v", u, err)
-		}
-
-		err = h.Register(health.Config{
-			Name:      url.Host,
-			Timeout:   time.Second * time.Duration(config.Timeout),
-			SkipOnErr: false,
-			Check: healthHttp.New(healthHttp.Config{
-				URL:            url.String(),
-				RequestTimeout: time.Second * time.Duration(config.Timeout),
-			}),
-		})
-		if err != nil {
-			log.Fatalf("failed to register http health check %s: %v", url, err)
+	for _, endpoint := range config.Targets.HTTP {
+		t := &target.HTTP{}
+		if err := target.Register(t, endpoint, h, config); err != nil {
+			log.Fatalf("failed to register http target: %v", err)
 		}
 	}
 
-	for _, u := range config.PostgreSQLURIs {
-		url, err := url.ParseRequestURI(u)
-		if err != nil {
-			log.Fatalf("failed to parse url %s: %v", u, err)
-		}
-
-		err = h.Register(health.Config{
-			Name:      url.Host,
-			Timeout:   time.Second * time.Duration(config.Timeout),
-			SkipOnErr: false,
-			Check: healthPostgres.New(healthPostgres.Config{
-				DSN: u,
-			}),
-		})
-		if err != nil {
-			log.Fatalf("failed to register postgresql health check %s: %v", url, err)
+	for _, endpoint := range config.Targets.PostgreSQL {
+		t := &target.PostgreSQL{}
+		if err := target.Register(t, endpoint, h, config); err != nil {
+			log.Fatalf("failed to register postgresql target: %v", err)
 		}
 	}
 
-	for _, u := range config.RedisURIs {
-		url, err := url.ParseRequestURI(u)
-		if err != nil {
-			log.Fatalf("failed to parse url %s: %v", u, err)
-		}
-
-		err = h.Register(health.Config{
-			Name:      url.Host,
-			Timeout:   time.Second * time.Duration(config.Timeout),
-			SkipOnErr: false,
-			Check: healthRedis.New(healthRedis.Config{
-				DSN: u,
-			}),
-		})
-		if err != nil {
-			log.Fatalf("failed to register redis health check %s: %v", url, err)
+	for _, endpoint := range config.Targets.Redis {
+		t := &target.Redis{}
+		if err := target.Register(t, endpoint, h, config); err != nil {
+			log.Fatalf("failed to register redis target: %v", err)
 		}
 	}
 
-	logger := httplog.NewLogger("go-healthcheck", httplog.Options{
-		LogLevel:        slog.LevelInfo,
-		Concise:         true,
-		RequestHeaders:  true,
-		TimeFieldFormat: time.RFC3339,
-	})
+	r := router.New(h)
 
-	r := chi.NewRouter()
+	fmt.Printf("Listening on port %s\n", config.Port)
 
-	r.Use(middleware.Heartbeat("/health"))
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Timeout(time.Second * 10))
-
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		type CheckWithFailures struct {
-			health.Check
-			Failures map[string]string `json:"failures"` // Overrides Check.Failures which is normally omitempty
-		}
-		cwf := CheckWithFailures{}
-
-		c := h.Measure(r.Context())
-
-		cwf.Status = c.Status
-		cwf.Timestamp = c.Timestamp
-		cwf.Failures = c.Failures
-		cwf.Component = c.Component
-
-		w.Header().Set("Content-Type", "application/json")
-		data, err := json.Marshal(cwf)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		code := http.StatusOK
-		if c.Status == "Unavailable" {
-			code = http.StatusServiceUnavailable
-		}
-		logger.Logger.Info(string(data))
-		w.WriteHeader(code)
-		_, err = w.Write(data)
-		if err != nil {
-			log.Fatalf("failed to write response: %v", err)
-		}
-	})
-
-	port := os.Getenv("GOHC_PORT")
-	if port == "" {
-		port = "3000"
-	}
-	fmt.Printf("Listening on port %s\n", port)
-	err = http.ListenAndServe(fmt.Sprintf(":%s", port), r)
+	err = http.ListenAndServe(fmt.Sprintf(":%s", config.Port), r)
 	if err != nil {
-		log.Fatalf("failed to listen on port %s: %v", port, err)
+		log.Fatalf("failed to listen on port %s: %v", config.Port, err)
 	}
 }

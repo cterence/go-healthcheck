@@ -31,7 +31,5 @@ mv config.example.yaml config.yaml
 docker compose up -d
 # query go-healthcheck
 curl localhost:3000
-# {"status":"OK","timestamp":"2025-03-19T21:25:35.401294936Z","component":{"name":"mychecks","version":"1.0"}}
+# {"status":"OK","timestamp":"2025-03-19T21:25:35.401294936Z","component":{"name":"mychecks","version":"1.0"}, "failures": {}}
 ```
-
-Listening port can be changed by setting the `GOHC_PORT` env variable.
