@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/go-chi/httplog/v2 v2.1.1
-	github.com/go-chi/httplog/v3 v3.1.0
+	github.com/go-chi/httplog/v3 v3.2.0
 	github.com/hellofresh/health-go/v5 v5.5.4
 	gopkg.in/yaml.v3 v3.0.1
 )
