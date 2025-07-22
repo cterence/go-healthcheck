@@ -6,7 +6,7 @@ services:
     volumes:
       - ./config.yaml:/app/config.yaml
   db:
-    image: postgres:17@sha256:860b86fceaad4a01431cc2dd4887a4f0578475ba9c8bef8348957466b1347419
+    image: postgres:17@sha256:378ef4ac725e37399d67444809711e5340f90c2a54b22ab41a52c5ab1cd22d6b
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
