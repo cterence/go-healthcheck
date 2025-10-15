@@ -31,3 +31,6 @@ config.yaml
 go-healthcheck
 # Added by goreleaser init:
 dist/
+
+*.key
+*.crt

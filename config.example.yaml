@@ -2,6 +2,9 @@ name: mychecks
 version: 1.0
 timeout: 5
 port: 3000
+# httpClientCertPath: ./client.crt # optional
+# httpClientKeyPath: ./client.key # optional
+# httpStatusCodeErrorThreshold: 400 # optional
 targets:
   http:
     - https://google.com

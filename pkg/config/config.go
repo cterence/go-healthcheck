@@ -14,11 +14,14 @@ type Targets struct {
 }
 
 type Config struct {
-	Name    string  `yaml:"name"`
-	Port    string  `yaml:"port,omitempty"`
-	Version string  `yaml:"version"`
-	Timeout int     `yaml:"timeout"`
-	Targets Targets `yaml:"targets"`
+	Name                         string  `yaml:"name"`
+	Port                         string  `yaml:"port,omitempty"`
+	Version                      string  `yaml:"version"`
+	Timeout                      int     `yaml:"timeout"`
+	Targets                      Targets `yaml:"targets"`
+	HTTPClientCertPath           string  `yaml:"httpClientCertPath,omitempty"`
+	HTTPClientKeyPath            string  `yaml:"httpClientKeyPath,omitempty"`
+	HTTPStatusCodeErrorThreshold int     `yaml:"httpStatusCodeErrorThreshold,omitempty"`
 }
 
 func (c *Config) Load() error {

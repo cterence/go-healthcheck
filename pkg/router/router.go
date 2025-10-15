@@ -54,7 +54,7 @@ func New(h *health.Health) *chi.Mux {
 		if c.Status == "Unavailable" {
 			code = http.StatusServiceUnavailable
 		}
-		logger.Logger.Info(string(data))
+		logger.Info(string(data))
 		w.WriteHeader(code)
 		_, err = w.Write(data)
 		if err != nil {
