@@ -45,8 +45,6 @@ func New(config Config) func(ctx context.Context) error {
 		}
 		defer res.Body.Close() //nolint:errcheck
 
-		fmt.Printf("Response status: %d\n", res.StatusCode)
-
 		threshold := config.HTTPStatusCodeErrorThreshold
 		if threshold == 0 {
 			threshold = http.StatusInternalServerError

@@ -51,7 +51,6 @@ func (t *HTTP) Register(h *health.Health, c *config.Config) error {
 			Timeout: time.Second * time.Duration(c.Timeout),
 		}
 		httpConfig.Client = client
-		fmt.Printf("Using client cert and key from %s and %s\n", c.HTTPClientCertPath, c.HTTPClientKeyPath)
 	}
 
 	if err := h.Register(health.Config{
