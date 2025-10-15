@@ -18,10 +18,13 @@ func main() {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
-	h, _ := health.New(health.WithComponent(health.Component{
+	h, err := health.New(health.WithComponent(health.Component{
 		Name:    config.Name,
 		Version: config.Version,
 	}))
+	if err != nil {
+		log.Fatalf("failed to create health check container: %v", err)
+	}
 
 	for _, endpoint := range config.Targets.HTTP {
 		t := &target.HTTP{}
