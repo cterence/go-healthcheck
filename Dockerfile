@@ -13,7 +13,7 @@ WORKDIR /src
 RUN CGO_ENABLED=0 GOOS=linux go build -o /src/app
 
 
-FROM gcr.io/distroless/base-debian12@sha256:f5a3067027c2b322cd71b844f3d84ad3deada45ceb8a30f301260a602455070e AS deploy-stage
+FROM gcr.io/distroless/base-debian12@sha256:0c70ab46409b94a96f4e98e32e7333050581e75f7038de2877a4bfc146dfc7ce AS deploy-stage
 WORKDIR /app
 COPY --from=build-stage /src/app /app/app
 EXPOSE 3000
