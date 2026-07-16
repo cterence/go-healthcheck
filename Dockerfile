@@ -1,11 +1,11 @@
-FROM golang:1.26.5@sha256:d52df9c279840adf958d017ebb275651ed8338b953d39817bc3633a2e6b1bbcc AS fetch-stage
+FROM golang:1.26.5@sha256:ae5a2316d12f3e78fd99177dad452e6ad4f240af2d71d57b480c3477f250fec6 AS fetch-stage
 
 COPY go.mod go.sum /src/
 WORKDIR /src
 RUN go mod download
 
 
-FROM golang:1.26.5@sha256:d52df9c279840adf958d017ebb275651ed8338b953d39817bc3633a2e6b1bbcc AS build-stage
+FROM golang:1.26.5@sha256:ae5a2316d12f3e78fd99177dad452e6ad4f240af2d71d57b480c3477f250fec6 AS build-stage
 COPY --from=fetch-stage /src /src
 COPY main.go pkg/ /src/
 COPY pkg/ /src/pkg
